@@ -90,11 +90,9 @@ plt.show()
 
 # Task 4 
 def fast_approx_ln(x, n):
-    """
 
-    """
     if x <= 0 or n < 1:
-        raise ValueError("x must be larger than 0 and n must be larger or equal to 1")
+        raise ValueError("x must be greater than 0 and n must be an integer greater or equal to 1")
     
     a = np.zeros(n + 1)
     d = np.zeros((n + 1, n + 1))
@@ -122,29 +120,26 @@ fast_approx_ln_value = fast_approx_ln(x, n_iterations)
 print(f"The approximation of ln({x}) after {n_iterations} iterations is: {fast_approx_ln_value}")
 
 # Task 5
-def plot_fast_ln(iterations_list, interval, num_points=1000):
-    """
-
-    """
-    x = np.linspace(interval[0], interval[1], num_points)
-    y = np.log(x)
-    errs = [np.abs(y - [fast_approx_ln(_x, iterations) for _x in x]) for iterations in iterations_list]
-            
-    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+def plot_fast_ln(num_points=1000):
+ 
+    x_values = np.linspace(0.1, 20, num_points)
+    true_log_values = np.log(x_values)
     
-    for err, iterations in zip(errs, iterations_list):
-        ax.plot(x, err, label=f'iteration {iterations}')
-        
-    ax.legend()
-    ax.set_xscale('linear')
-    ax.set_yscale('log')
-    ax.set_xlabel('x')
-    ax.set_ylabel('error')
-    ax.set_title('Error behavior of the accelerated Carlsson method for the log (TASK 5)')
-    ax.set_xlim(interval)
-    ax.set_ylim([1e-17, 1e-2])
-    ax.grid(True, which="both", ls="--")
+    plt.figure(figsize=(12, 8))
+    
+    for iterations in [2, 3, 4, 5, 6]:
+        approx_log_values = np.array([fast_approx_ln(x, iterations) for x in x_values])
+        error = np.abs(true_log_values - approx_log_values)
+        plt.plot(x_values, error, label=f'iteration {iterations}')
+    
+    plt.yscale('log')
+    plt.xlabel('x')
+    plt.ylabel('error')
+    plt.title('Error behavior of the accelerated Carlsson method for the log')
+    plt.legend()
+    plt.grid(True, which="both", ls="--")
+    plt.ylim(1e-17, 1e-2)
+    plt.xlim([0.1, 20])
+    plt.show()
 
-    plt.show() 
-
-plot_fast_ln([2, 3, 4, 5, 6], [0.01, 20], 1000)
+plot_fast_ln(1000)
