@@ -1,3 +1,6 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
 class Interval:
 
     def __init__(self, lb, ub=None):
@@ -162,6 +165,30 @@ class Interval:
 
         return self.lb <= value <= self.ub
 
+    def __pow__(self, exponent):
+        if not isinstance(exponent, int):
+            raise ValueError("Exponent must be an integer.")
+    
+        if exponent == 0:
+            return Interval(1, 1)
+    
+        if exponent > 0:
+            if exponent % 2 == 1:  # Odd exponent
+                return Interval(self.lb ** exponent, self.ub ** exponent)
+            else:  # Even exponent
+                if self.lb >= 0:
+                    return Interval(self.lb ** exponent, self.ub ** exponent)
+                elif self.ub < 0:
+                    return Interval(self.ub ** exponent, self.lb ** exponent)
+                else:
+                    return Interval(0, max(self.lb ** exponent, self.ub ** exponent))
+    
+        if exponent < 0:
+            if self.lb <= 0 <= self.ub:
+                raise ZeroDivisionError("Division by an interval containing zero is undefined.")
+            results = [self.lb ** exponent, self.ub ** exponent]
+            return Interval(min(results), max(results))
+
 
 
 print("Task 3 test")
@@ -169,7 +196,6 @@ print("Task 3 test")
 i = Interval (1,2)
 
 print ( i ) # [1, 2]
-
 
 
 print("\nTask 4 tests")
@@ -191,15 +217,11 @@ print(I1 * I2)  # [-8, -1]
 print(I1 / I2)  # [-4.0, -0.5]
 
 
-
-
-
 print("\nTask 7 test")
 
 j = Interval (1)
 
 print ( j ) # [1, 1]
-
 
 
 print("\nTask 8 tests")
@@ -232,3 +254,35 @@ print(I1 * 1.0)  # [2.0, 3.0]
 
 print(-Interval(4, 5))  # [-5, -4]
 
+print("\nTask 9 tests")
+x = Interval(-2, 2)
+print(x ** 2)  # [0, 4]
+print(x ** 3)  # [-8, 8]
+
+# Task 10
+# Create a list of intervals
+xl = np.linspace(0., 1., 1000)
+xu = xl + 0.5
+intervals = [Interval(lb, ub) for lb, ub in zip(xl, xu)]
+
+# Define the polynomial function p(I) = 3I^3 - 2I^2 - 5I - 1
+def evaluate_polynomial(interval):
+    return 3 * (interval ** 3) - 2 * (interval ** 2) - 5 * interval - 1
+
+# Evaluate the polynomial on each interval
+evaluated_intervals = [evaluate_polynomial(interval) for interval in intervals]
+
+# Extract lower and upper bounds
+yl = [interval.lb for interval in evaluated_intervals]
+yu = [interval.ub for interval in evaluated_intervals]
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(xl, yl, color = "blue") # Lower boundaries
+plt.plot(xl, yu, color = "green") # Upper boundaries
+plt.xlabel('x')
+plt.ylabel('p(I)')
+plt.title(r'$p(I) = 3I^3 - 2I^2 - 5I - 1$, I = Interval(x, x+0.5)') # r (raw string) for LaTeX formatting
+plt.ylim(-10, 4)
+plt.xlim(0.0, 1.0)
+plt.show()
