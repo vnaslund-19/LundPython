@@ -117,6 +117,9 @@ class Interval:
 
                 raise ZeroDivisionError("Division by an interval containing zero undefined.")
 
+            if any(abs(bound) < 1e-297 for bound in [other.lb, other.ub]): # 1e-308
+                raise OverflowError("Division results in an infinitely large interval.")
+            
             results = [self.lb / other.lb, self.lb / other.ub, self.ub / other.lb, self.ub / other.ub]
 
             return Interval(min(results), max(results))
@@ -126,6 +129,9 @@ class Interval:
             if other == 0:
 
                 raise ZeroDivisionError("Division by zero is undefined.")
+
+            if abs(other) < 1e-297:
+                raise OverflowError("Division results in an infinitely large interval.")
 
             results = [self.lb / other, self.ub / other]
 
@@ -144,6 +150,9 @@ class Interval:
             if self.lb <= 0 <= self.ub:
 
                 raise ZeroDivisionError("Division by an interval containing zero is undefined.")
+
+            if any(abs(bound) < 1e-297 for bound in [other.lb, other.ub]):
+                raise OverflowError("Division results in an infinitely large interval.")
 
             results = [other / self.lb, other / self.ub]
 
@@ -216,6 +225,38 @@ print(I1 * I2)  # [-8, -1]
 
 print(I1 / I2)  # [-4.0, -0.5]
 
+print("\nTask 5 tests")
+print(I1.contains(3))
+print(I2.contains(-3))
+
+print("\nTask 6 tests")
+I1 = Interval(-1, 1) # contains 0
+try:
+    I1 = I2 / I1
+except(ZeroDivisionError):
+    print("Cant divide by an interval that contains 0")
+
+try:
+    I1 = I2 / 0
+except(ZeroDivisionError):
+    print("Cant divide interval by 0")
+
+smallestPositiveNonZero = np.nextafter(0, 1)
+numerator = Interval(1, 2)
+denominator = Interval(smallestPositiveNonZero, 0.1)
+
+try:
+    result = numerator / denominator # Overflow
+    print(result)
+except(OverflowError):
+    print("Resulting interval would be infinitely large")
+
+try:
+    result = numerator / smallestPositiveNonZero # Overflow
+    print(result)
+except(OverflowError):
+    print("Resulting interval would be infinitely large")
+
 
 print("\nTask 7 test")
 
@@ -260,19 +301,18 @@ print(x ** 2)  # [0, 4]
 print(x ** 3)  # [-8, 8]
 
 # Task 10
-# Create a list of intervals
-xl = np.linspace(0., 1., 1000)
-xu = xl + 0.5
-intervals = [Interval(lb, ub) for lb, ub in zip(xl, xu)]
+xl = np.linspace(0., 1., 1000) # lower bound
+xu = xl + 0.5 # upper bound
+intervals = [Interval(xl[i], xu[i]) for i in range(len(xl))]
 
 # Define the polynomial function p(I) = 3I^3 - 2I^2 - 5I - 1
 def evaluate_polynomial(interval):
     return 3 * (interval ** 3) - 2 * (interval ** 2) - 5 * interval - 1
 
-# Evaluate the polynomial on each interval
+# Apply the function on al intervals
 evaluated_intervals = [evaluate_polynomial(interval) for interval in intervals]
 
-# Extract lower and upper bounds
+# Extract lower and upper bounds into yl & yu
 yl = [interval.lb for interval in evaluated_intervals]
 yu = [interval.ub for interval in evaluated_intervals]
 
